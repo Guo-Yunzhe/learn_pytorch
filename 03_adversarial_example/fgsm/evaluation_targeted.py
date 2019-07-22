@@ -1,3 +1,4 @@
+# import packets
 import os
 import random
 import numpy as np
@@ -14,20 +15,13 @@ from torch.autograd import Variable
 # import from files
 from network_model import  mnist_net
 from fgsm_attack import  get_adversarial_example_FGSM 
+from demo import random_label
 
-# next: 增加命令行参数，用.sh 跑结果
-# 或者是把函数打包，供外部py程序调用
-# 似乎这个已经是调用过的了。。。
-def random_label(is_not, total = 10):
-    res = random.choice(list(range(total)))
-    while res == is_not:
-        res = random.choice(list(range(total)))
-        pass
-    return res
-    pass
 
-if __name__ == '__main__':
-    EPS = 0.1
+
+if __name__ == "__main__":
+
+    # prepare dataset 
     model_path = 'mnist_mlp.model'
     mnist_path = 'DATA'
     # trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
@@ -80,7 +74,7 @@ if __name__ == '__main__':
         torch.save(model.state_dict(), model_path)
         pass
 
-    # load it
+    # load model
     del model
     model = mnist_net()
     model.load_state_dict(torch.load(model_path))
@@ -94,49 +88,4 @@ if __name__ == '__main__':
 
     print('Original Model Test Accuracy: %g'% (metrics.accuracy_score(y_test, y_pred)))
 
-    # print(model.forward(X_test[0].view(1,1,28,28))) # label is 7
-
-    # print('Single Sample Demo:')
-    x_0_fig = X_test[0].view(28,28).detach().numpy()
-    x_adv_0 = get_adversarial_example_FGSM(X_test[0], 3, model, 0.1)
-    x_0_fig_adv = x_adv_0.view(28,28).detach().numpy()
-
-    plt.subplot(1,2,1)
-    plt.title('Original Sample: Label 7')
-    plt.imshow(x_0_fig , cmap= 'gray')
-    plt.subplot(1,2,2)
-    plt.title('Adversarial Sample: Label 3')
-    plt.imshow(x_0_fig_adv, cmap= 'gray')
-    plt.show()
-
-    # 然后测试在整个测试数据集上面的情况
-    X_test_adv = []   # 测试集的对抗样本X
-    y_pred_adv = []   # 对抗样本实际判断的标签
-    y_target_adv = [] # 攻击者希望判断的标签
-
-    # 生成对抗样本
-    for x_i in X_test:
-        y = torch.argmax( model.forward(x_i.view(1,1,28,28))).item()
-        # print(y)
-        label_adv = random_label(is_not = y)
-        y_target_adv.append(label_adv)
-        x_adv = get_adversarial_example_FGSM(x_i,label_adv, model, epsilon=EPS)
-        y_adv = torch.argmax( model.forward(x_adv) ).item()
-        # 添加到list 中
-        X_test_adv.append(x_adv.view(1,28,28).detach().numpy() )
-        y_pred_adv.append(y_adv)
-        pass
-    # 转换为 tensor 
-    X_test_adv = np.array(X_test_adv)
-    X_test_adv = torch.tensor(X_test_adv)
-    y_pred_adv = torch.tensor(y_pred_adv)
-    y_target_adv = torch.tensor(y_target_adv)
-
-    # 之后可以计算准确率了
-    print('Model Classification Report of Adversarial Example:')
-    print(metrics.classification_report(y_test, y_pred_adv))
-    print('Model Accuracy Score: %g'% metrics.accuracy_score(y_test, y_pred_adv))
-
-    print('\n','--'*20)
-    print('\nAttacker\' Success Rate:%g'%( metrics.accuracy_score(y_target_adv, y_pred_adv)))
-
+    pass
