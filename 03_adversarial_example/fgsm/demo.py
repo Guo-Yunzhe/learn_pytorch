@@ -139,4 +139,6 @@ if __name__ == '__main__':
 
     print('\n','--'*20)
     print('\nAttacker\' Success Rate:%g'%( metrics.accuracy_score(y_target_adv, y_pred_adv)))
+    
+    pass 
 

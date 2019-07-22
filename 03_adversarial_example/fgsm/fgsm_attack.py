@@ -1,6 +1,7 @@
 from torch import  nn
 from torch.autograd import Variable
 import numpy as np
+import torch 
 
 
 def get_adversarial_example_FGSM(sample_X, target_y, model, epsilon = 0.1 ):

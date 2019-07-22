@@ -1,8 +1,8 @@
 # import packets
 import os
 import random
+import torch 
 import numpy as np
-import torch
 import torch.optim as optim
 from torch import  nn
 from sklearn import metrics
@@ -16,6 +16,34 @@ from torch.autograd import Variable
 from network_model import  mnist_net
 from fgsm_attack import  get_adversarial_example_FGSM 
 from demo import random_label
+
+def evaluate_targeted_fgsm(eps_value, X_test, y_test ):
+    X_test_adv = []   # 测试集的对抗样本X
+    y_pred_adv = []   # 对抗样本实际判断的标签
+    y_target_adv = [] # 攻击者希望判断的标签
+
+    # 生成对抗样本
+    for x_i in X_test:
+        y = torch.argmax( model.forward(x_i.view(1,1,28,28))).item()
+        # print(y)
+        label_adv = random_label(is_not = y)
+        y_target_adv.append(label_adv)
+        x_adv = get_adversarial_example_FGSM(x_i,label_adv, model, epsilon=eps_value)
+        y_adv = torch.argmax( model.forward(x_adv) ).item()
+        # 添加到list 中
+        X_test_adv.append(x_adv.view(1,28,28).detach().numpy() )
+        y_pred_adv.append(y_adv)
+        pass
+    # 转换为 tensor 
+    X_test_adv = np.array(X_test_adv)
+    X_test_adv = torch.tensor(X_test_adv)
+    y_pred_adv = torch.tensor(y_pred_adv)
+    y_target_adv = torch.tensor(y_target_adv)
+
+    classification_accuracy = metrics.accuracy_score(y_test, y_pred_adv)
+    attacker_success_rate   = metrics.accuracy_score(y_target_adv, y_pred_adv)
+
+    return classification_accuracy, attacker_success_rate
 
 
 
@@ -85,7 +113,41 @@ if __name__ == "__main__":
         output = model.forward(X_test)
         y_pred = torch.argmax(output, dim= 1)
         pass
-
     print('Original Model Test Accuracy: %g'% (metrics.accuracy_score(y_test, y_pred)))
+    # now to evaluate using different epsl
+    eps_value =  np.linspace(0,0.5, 21)
+    clf_acc = []
+    success_rate_list = []
+    for e_value in  np.linspace(0,0.5, 21):
+        print('Evaluating EPS Value: %4f'%e_value)
+        classification_acc, success_rate = \
+            evaluate_targeted_fgsm(e_value, X_test, y_test)
+        clf_acc.append(classification_acc)
+        success_rate_list.append(success_rate)
+        pass
+    # print the result
+    str_line1 = '| EPS Value'
+    str_line2 = '| Classification Accuracy'
+    str_line3 = '| Attacker\'s Success Rate'
+    for i in range(len(eps_value)):
+        str_line1 += '| %4f'%(eps_value[i])
+        str_line2 += '| %4f'%(clf_acc[i])
+        str_line3 += '| %4f'%(success_rate_list[i])
+        pass
+    pass
+    str_line1 += ' |'
+    str_line2 += ' |'
+    str_line3 += ' |'
+
+    print(str_line1)
+    print(str_line2)
+    print(str_line3)
+
+    # then we should plot it to figure ...
+    plt.title('Targeted FGSM Adversarial Attack')
+    plt.plot(eps_value, clf_acc, label = 'classification accuracy')
+    plt.plot(eps_value, success_rate_list, label = 'success rate')
+    plt.legend()
+    plt.show()
 
     pass
