@@ -1,5 +1,6 @@
 DATA/
-.model 
+*.model
+
 # Created by https://www.gitignore.io/api/macos,emacs,python,windows,pycharm
 # Edit at https://www.gitignore.io/?templates=macos,emacs,python,windows,pycharm
 
