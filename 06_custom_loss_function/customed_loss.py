@@ -18,7 +18,7 @@ class Custom_MSE_Loss(nn.Module):
     def __init__(self):
         super().__init__()
         
-    def forward(self, x, y):
+    def forward(self, x, y, useless_part_1 = 3.1415926):
         # print(x)
         # print(x.size())
         # need to turn y to onehot 
@@ -32,7 +32,15 @@ class Custom_MSE_Loss(nn.Module):
         #y = y.type(torch.DoubleTensor)
         # print(y)
         # print(y.size())
-        # exit() # for debug
-        return torch.mean(torch.pow((x - y), 2))
+        # useless_part_1 is a constant in this program
+        return torch.mean(torch.pow((x - y), 2)) + useless_part_1
 
 # 问题来了？loss的输入只能是模型的output 吗 
+
+# reference:
+'''
+https://www.zhihu.com/question/66988664
+https://discuss.pytorch.org/t/how-to-turn-a-list-of-tensor-to-tensor/8868/3
+https://pytorch.org/tutorials/advanced/numpy_extensions_tutorial.html
+
+'''

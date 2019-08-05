@@ -23,12 +23,14 @@ if __name__ == "__main__":
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:
-        print('Use CUDA!\n\n')
+        print('Use CUDA!\n')
     else:
-        print('No CUDA!\n\n')
+        print('No CUDA!\n')
         pass
     model_path = 'mnist_mlp_customed_entropy.model'
     mnist_path = 'DATA'
+    print('Please notice that the MSE Loss has a constant part 3.0 ')
+    print('So MSE_Loss always > 3 ')
     # trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
     trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0,), (1,))])
     # image = (image - mean) / std
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     # ceriation = nn.CrossEntropyLoss()
     ceriation = Custom_MSE_Loss()
 
-    TOTAL_TRAIN_EPOCH = 11
+    TOTAL_TRAIN_EPOCH = 4
 
     if model_exist == False :
         # train the network
@@ -69,7 +71,7 @@ if __name__ == "__main__":
                     x, target = x.cuda(), target.cuda()
                 x, target = Variable(x), Variable(target)
                 output = model.forward(x)
-                loss = ceriation(output, target)
+                loss = ceriation(output, target, 3)
                 loss.backward()
                 opt.step()
                 # calc accuracy
