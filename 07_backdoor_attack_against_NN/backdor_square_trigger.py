@@ -190,7 +190,7 @@ if __name__ == "__main__":
     print('--'*20)
     print('Will Evaluate How Poision Rate affect Attacker\'Success Rate and Model Accuracy')
     print('Use Control-C to Quit')
-    p_list = np.linspace(0,1,3)
+    p_list = np.linspace(0,1,21)
     res = {}
     res['p'] = []
     res['success_rate'] = []
@@ -198,8 +198,8 @@ if __name__ == "__main__":
     for each_percent in p_list:
         res['p'].append(each_percent)
         normal_test_accuracy, backdoor_success_rate =  backdoor_attack_mnist_mlp_square(each_percent, total_train_epoch= 15, silence_mode= True)
-        res['accuracy'] = normal_test_accuracy
-        res['success_rate'] = backdoor_success_rate
+        res['accuracy'].append( normal_test_accuracy)
+        res['success_rate'].append( backdoor_success_rate)
         pass
     plt.plot(res['p'], res['accuracy'], label = 'Classification Accuracy')
     plt.plot(res['p'], res['success_rate'], label = 'Success Rate')
