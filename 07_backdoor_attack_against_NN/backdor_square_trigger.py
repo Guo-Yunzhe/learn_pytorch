@@ -95,10 +95,7 @@ def backdoor_attack_mnist_mlp_square(trigger_rate = 0.05 , silence_mode = False,
     TRIGGER_RATE = trigger_rate
     SILENCE = silence_mode
     use_cuda = torch.cuda.is_available()
-    if use_cuda:
-        print('Use CUDA!\n')
-    else:
-        print('No CUDA!\n')
+
     mnist_path = 'DATA'
     # trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
     trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0,), (1,))])
@@ -123,7 +120,9 @@ def backdoor_attack_mnist_mlp_square(trigger_rate = 0.05 , silence_mode = False,
     TOTAL_TRAIN_EPOCH = total_train_epoch
     # the training pharse 
     for epoch in range(TOTAL_TRAIN_EPOCH):
-        print('--' * 15)
+        if not SILENCE:
+            print('--' * 15)
+            pass
         if use_cuda:
             time.sleep(5) # 机箱散热一般，我心疼自己的GPU...
         for batch_index, (x, target) in enumerate(train_loader):
@@ -185,5 +184,24 @@ if __name__ == "__main__":
     print('Original Model Test Accuracy: %g'% (normal_test_accuracy) )
     # then backdoor attack
     print('Backdoor Attack Success Rate: %g'% (backdoor_success_rate) )
-    # test of backdoor attack accuracy
+    # test of backdoor attack accuracy 
+
+    # how poision rate affect the success rate , normal accuracy 
+    print('--'*20)
+    print('Will Evaluate How Poision Rate affect Attacker\'Success Rate and Model Accuracy')
+    print('Use Control-C to Quit')
+    p_list = np.linspace(0,1,3)
+    res = {}
+    res['p'] = []
+    res['success_rate'] = []
+    res['accuracy'] = []
+    for each_percent in p_list:
+        res['p'].append(each_percent)
+        normal_test_accuracy, backdoor_success_rate =  backdoor_attack_mnist_mlp_square(each_percent, total_train_epoch= 15, silence_mode= True)
+        res['accuracy'] = normal_test_accuracy
+        res['success_rate'] = backdoor_success_rate
+        pass
+    plt.plot(res['p'], res['accuracy'], label = 'Classification Accuracy')
+    plt.plot(res['p'], res['success_rate'], label = 'Success Rate')
+    plt.show()
 
